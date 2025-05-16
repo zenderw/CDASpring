@@ -16,26 +16,40 @@ import jakarta.servlet.DispatcherType;
 @EnableMethodSecurity(securedEnabled = true)
 public class WebSecurityConfig {
 
-    private static final String[] PUBLIC_MATCHERS = { "/", "/produits", "/produits/**", "/images/**", "/webjars/**", "/login"};
+    private static final String[] PUBLIC_MATCHERS = {
+            "/", "/products", "/products/**",
+            "/images/**", "/webjars/**", "/css/**", "/js/**", "/resources/**",
+            "/login", "/register", "/fragments/**"
+    };
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.authorizeHttpRequests(auth ->
+        http
+                .csrf(csrf -> csrf.disable())  // Temporairement désactiver CSRF
+                .authorizeHttpRequests(auth ->
                         auth.requestMatchers(PUBLIC_MATCHERS).permitAll()
+                                .requestMatchers("/WEB-INF/jsp/**").permitAll()
                                 .dispatcherTypeMatchers(DispatcherType.FORWARD).permitAll()
-                                .anyRequest().authenticated())
+                                .anyRequest().authenticated()
+                )
                 .formLogin(form -> form
                         .loginPage("/login")
                         .loginProcessingUrl("/login")
                         .defaultSuccessUrl("/profile", true)
-                        .permitAll())
+                        .failureUrl("/login?error=true")
+                        .permitAll()
+                )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .logoutSuccessUrl("/")
-                        .permitAll());
+                        .permitAll()
+                );
 
         return http.build();
     }
+
+    // Autres méthodes...
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {

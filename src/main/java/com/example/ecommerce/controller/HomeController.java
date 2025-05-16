@@ -23,4 +23,15 @@ public class HomeController {
     public String logout() {
         return "logout";
     }
+
+    @GetMapping("/cart")
+    public String viewCart() {
+        return "cart";
+    }
+
+    @GetMapping("/profile")
+    public String profile() {
+        System.out.println("profile");
+        return "profile";
+    }
 }

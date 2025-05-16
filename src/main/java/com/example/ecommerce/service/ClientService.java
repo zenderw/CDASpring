@@ -37,10 +37,11 @@ public class ClientService {
 
 
 
-public Client findByUsername(String username) {
-    return repository.findByUsername(username)
-            .orElseThrow(() -> new RuntimeException("Client not found with username: " + username));
-}
+    // Dans ClientService.java
+    public Client findByUsername(String username) {
+        return repository.findByUsername(username)
+                .orElse(null); // Retourne null au lieu de lancer une exception
+    }
 
 
 

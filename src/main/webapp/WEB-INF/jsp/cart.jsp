@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -193,7 +194,11 @@
             gap: 10px;
         }
 
-        /* Product card styles */
+        .text-candle {
+            color: #d46a6a;
+        }
+
+        /* Product card styles for recommendations */
         .product-card {
             border: 1px solid #f0e0d6;
             border-radius: 10px;
@@ -230,10 +235,6 @@
             font-size: 1.1rem;
             margin-bottom: 15px;
         }
-
-        .text-candle {
-            color: #d46a6a;
-        }
     </style>
 </head>
 <body>
@@ -254,114 +255,95 @@
     </div>
 </section>
 
-<!-- Cart Section - Part 1: Cart Items Table -->
+<!-- Cart Section -->
 <section class="container mb-5">
     <div class="row">
         <div class="col-lg-8">
             <!-- If cart is not empty -->
-            <div id="cart-items">
-                <table class="table cart-table">
-                    <thead>
-                    <tr>
-                        <th style="width: 50%">Product</th>
-                        <th style="width: 15%">Price</th>
-                        <th style="width: 15%">Quantity</th>
-                        <th style="width: 15%">Subtotal</th>
-                        <th style="width: 5%"></th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <!-- Cart Item 1 -->
-                    <tr>
-                        <td>
-                            <div class="cart-product">
-                                <img src="https://images.unsplash.com/photo-1602528495711-f98bc3c8f8f8?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
-                                     class="cart-product-img" alt="Lavender Dreams">
-                                <div class="cart-product-info">
-                                    <div class="cart-product-name">Lavender Dreams</div>
-                                    <div class="cart-product-meta">8 oz, Lavender & Vanilla</div>
-                                </div>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="cart-price">€19.99</div>
-                        </td>
-                        <td>
-                            <div class="quantity-selector">
-                                <button class="quantity-btn" onclick="decrementQuantity(1)">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-                                <input type="number" value="2" min="1" class="quantity-input" id="quantity-1" onchange="updateCartItem(1)">
-                                <button class="quantity-btn" onclick="incrementQuantity(1)">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="subtotal" id="subtotal-1">€39.98</div>
-                        </td>
-                        <td>
-                            <div class="remove-btn" onclick="removeCartItem(1)">
-                                <i class="fas fa-times"></i>
-                            </div>
-                        </td>
-                    </tr>
+            <c:choose>
+                <c:when test="${not empty cartItems}">
+                    <div id="cart-items">
+                        <table class="table cart-table">
+                            <thead>
+                            <tr>
+                                <th style="width: 50%">Product</th>
+                                <th style="width: 15%">Price</th>
+                                <th style="width: 15%">Quantity</th>
+                                <th style="width: 15%">Subtotal</th>
+                                <th style="width: 5%"></th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <c:forEach var="item" items="${cartItems}">
+                                <tr data-product-id="${item.product.id}">
+                                    <td>
+                                        <div class="cart-product">
+                                            <c:choose>
+                                                <c:when test="${not empty item.product.image}">
+                                                    <img src="${item.product.image}" class="cart-product-img" alt="${item.product.name}">
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <img src="https://images.unsplash.com/photo-1603006905393-eecb2d01d909?ixlib=rb-4.0.3&auto=format&fit=crop&w=1170&q=80"
+                                                         class="cart-product-img" alt="${item.product.name}">
+                                                </c:otherwise>
+                                            </c:choose>
+                                            <div class="cart-product-info">
+                                                <div class="cart-product-name">${item.product.name}</div>
+                                                <div class="cart-product-meta">${item.product.description}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="cart-price">€<fmt:formatNumber value="${item.product.price}" pattern="#0.00"/></div>
+                                    </td>
+                                    <td>
+                                        <div class="quantity-selector">
+                                            <button class="quantity-btn" onclick="decrementQuantity(${item.product.id})">
+                                                <i class="fas fa-minus"></i>
+                                            </button>
+                                            <input type="number" value="${item.quantity}" min="1" max="${item.product.stock}"
+                                                   class="quantity-input" id="quantity-${item.product.id}"
+                                                   onchange="updateCartItem(${item.product.id})">
+                                            <button class="quantity-btn" onclick="incrementQuantity(${item.product.id})">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="subtotal" id="subtotal-${item.product.id}">
+                                            €<fmt:formatNumber value="${item.product.price * item.quantity}" pattern="#0.00"/>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="remove-btn" onclick="removeCartItem(${item.product.id})">
+                                            <i class="fas fa-times"></i>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </c:forEach>
+                            </tbody>
+                        </table>
 
-                    <!-- Cart Item 2 -->
-                    <tr>
-                        <td>
-                            <div class="cart-product">
-                                <img src="https://images.unsplash.com/photo-1608181831718-c9ffdbd5e2ce?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1170&q=80"
-                                     class="cart-product-img" alt="Citrus Burst">
-                                <div class="cart-product-info">
-                                    <div class="cart-product-name">Citrus Burst</div>
-                                    <div class="cart-product-meta">8 oz, Lemon & Grapefruit</div>
-                                </div>
+                        <!-- Cart Actions -->
+                        <div class="cart-actions">
+                            <div class="coupon-form">
+                                <input type="text" class="form-control" placeholder="Coupon code">
+                                <button class="btn btn-outline-candle">Apply Coupon</button>
                             </div>
-                        </td>
-                        <td>
-                            <div class="cart-price">€21.99</div>
-                        </td>
-                        <td>
-                            <div class="quantity-selector">
-                                <button class="quantity-btn" onclick="decrementQuantity(2)">
-                                    <i class="fas fa-minus"></i>
-                                </button>
-                                <input type="number" value="1" min="1" class="quantity-input" id="quantity-2" onchange="updateCartItem(2)">
-                                <button class="quantity-btn" onclick="incrementQuantity(2)">
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                            </div>
-                        </td>
-                        <td>
-                            <div class="subtotal" id="subtotal-2">€21.99</div>
-                        </td>
-                        <td>
-                            <div class="remove-btn" onclick="removeCartItem(2)">
-                                <i class="fas fa-times"></i>
-                            </div>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-
-                <!-- Cart Actions -->
-                <div class="cart-actions">
-                    <div class="coupon-form">
-                        <input type="text" class="form-control" placeholder="Coupon code">
-                        <button class="btn btn-outline-candle">Apply Coupon</button>
+                            <button class="btn btn-outline-candle" onclick="updateAllCartItems()">Update Cart</button>
+                        </div>
                     </div>
-                    <button class="btn btn-outline-candle" onclick="updateAllCartItems()">Update Cart</button>
-                </div>
-            </div>
-
-            <!-- If cart is empty (initially hidden) -->
-            <div id="empty-cart" style="display: none;" class="text-center py-5">
-                <i class="fas fa-shopping-cart fa-4x text-candle mb-3"></i>
-                <h3>Your cart is empty</h3>
-                <p class="text-muted mb-4">Looks like you haven't added any items to your cart yet.</p>
-                <a href="${pageContext.request.contextPath}/products" class="btn btn-candle">Browse Products</a>
-            </div>
+                </c:when>
+                <c:otherwise>
+                    <!-- If cart is empty -->
+                    <div id="empty-cart" class="text-center py-5">
+                        <i class="fas fa-shopping-cart fa-4x text-candle mb-3"></i>
+                        <h3>Your cart is empty</h3>
+                        <p class="text-muted mb-4">Looks like you haven't added any items to your cart yet.</p>
+                        <a href="${pageContext.request.contextPath}/products" class="btn btn-candle">Browse Products</a>
+                    </div>
+                </c:otherwise>
+            </c:choose>
         </div>
         <!-- Order Summary -->
         <div class="col-lg-4">
@@ -372,7 +354,7 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between mb-3">
                         <span>Subtotal</span>
-                        <span class="fw-bold" id="cart-subtotal">€61.97</span>
+                        <span class="fw-bold" id="cart-subtotal">€<fmt:formatNumber value="${subtotal}" pattern="#0.00"/></span>
                     </div>
                     <div class="d-flex justify-content-between mb-3">
                         <span>Shipping</span>
@@ -406,13 +388,24 @@
 
                     <div class="d-flex justify-content-between mb-4">
                         <span class="fw-bold">Total</span>
-                        <span class="fw-bold fs-5 text-candle" id="cart-total">€66.96</span>
+                        <span class="fw-bold fs-5 text-candle" id="cart-total">
+                            €<fmt:formatNumber value="${subtotal + 4.99}" pattern="#0.00"/>
+                        </span>
                     </div>
 
                     <div class="d-grid gap-2">
-                        <button class="btn btn-candle" id="checkout-btn">
-                            Proceed to Checkout
-                        </button>
+                        <c:choose>
+                            <c:when test="${not empty cartItems}">
+                                <button class="btn btn-candle" id="checkout-btn" onclick="proceedToCheckout()">
+                                    Proceed to Checkout
+                                </button>
+                            </c:when>
+                            <c:otherwise>
+                                <button class="btn btn-candle" disabled>
+                                    Your cart is empty
+                                </button>
+                            </c:otherwise>
+                        </c:choose>
                         <a href="${pageContext.request.contextPath}/products" class="btn btn-outline-candle">
                             Continue Shopping
                         </a>
@@ -592,87 +585,99 @@
 
 <!-- Cart Functions JavaScript -->
 <script>
+    // CSRF token pour les requêtes AJAX
+    const csrfToken = '${_csrf.token}';
+    const csrfHeader = '${_csrf.headerName}';
+
     // Cart Item Functions
-    function incrementQuantity(itemId) {
-        const quantityInput = document.getElementById(`quantity-${itemId}`);
+    function incrementQuantity(productId) {
+        const quantityInput = document.getElementById(`quantity-${productId}`);
         const currentValue = parseInt(quantityInput.value);
-        quantityInput.value = currentValue + 1;
-        updateCartItem(itemId);
+        const maxValue = parseInt(quantityInput.max);
+
+        if (currentValue < maxValue) {
+            quantityInput.value = currentValue + 1;
+            updateCartItem(productId);
+        } else {
+            alert('Cannot add more items. Stock limit reached.');
+        }
     }
 
-    function decrementQuantity(itemId) {
-        const quantityInput = document.getElementById(`quantity-${itemId}`);
+    function decrementQuantity(productId) {
+        const quantityInput = document.getElementById(`quantity-${productId}`);
         const currentValue = parseInt(quantityInput.value);
         if (currentValue > 1) {
             quantityInput.value = currentValue - 1;
-            updateCartItem(itemId);
+            updateCartItem(productId);
         }
     }
 
-    function updateCartItem(itemId) {
-        const quantityInput = document.getElementById(`quantity-${itemId}`);
+    function updateCartItem(productId) {
+        const quantityInput = document.getElementById(`quantity-${productId}`);
         const quantity = parseInt(quantityInput.value);
 
-        // Get price based on item ID
-        let price = 0;
-        if (itemId === 1) price = 19.99;
-        if (itemId === 2) price = 21.99;
-
-        // Calculate and update subtotal
-        const subtotal = (price * quantity).toFixed(2);
-        document.getElementById(`subtotal-${itemId}`).textContent = `€${subtotal}`;
-
-        // Update cart totals
-        updateCartTotals();
+        fetch('${pageContext.request.contextPath}/cart/update', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                [csrfHeader]: csrfToken
+            },
+            body: `productId=${productId}&quantity=${quantity}`
+        })
+            .then(response => response.text())
+            .then(data => {
+                if (data.startsWith('success:')) {
+                    // Recharge la page pour mettre à jour les totaux
+                    location.reload();
+                } else {
+                    alert(data.substring(6)); // Affiche le message d'erreur
+                    // Restaurer la valeur précédente en cas d'erreur
+                    location.reload();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Erreur lors de la mise à jour du panier');
+                location.reload();
+            });
     }
 
-    function removeCartItem(itemId) {
-        // In a real application, you would make an AJAX call to remove the item from the cart
-        const row = document.getElementById(`subtotal-${itemId}`).closest('tr');
-        row.remove();
-
-        // Check if there are any items left in the cart
-        const remainingItems = document.querySelector('.cart-table tbody').children.length;
-        if (remainingItems === 0) {
-            document.getElementById('cart-items').style.display = 'none';
-            document.getElementById('empty-cart').style.display = 'block';
+    function removeCartItem(productId) {
+        if (confirm('Êtes-vous sûr de vouloir supprimer ce produit du panier ?')) {
+            fetch('${pageContext.request.contextPath}/cart/remove', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    [csrfHeader]: csrfToken
+                },
+                body: `productId=${productId}`
+            })
+                .then(response => response.text())
+                .then(data => {
+                    if (data.startsWith('success:')) {
+                        // Recharge la page pour mettre à jour le panier
+                        location.reload();
+                    } else {
+                        alert(data.substring(6)); // Affiche le message d'erreur
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Erreur lors de la suppression du produit');
+                });
         }
-
-        // Update cart totals
-        updateCartTotals();
     }
 
     function updateAllCartItems() {
-        // Update all items in the cart
-        const itemRows = document.querySelector('.cart-table tbody').children;
-        for (let i = 0; i < itemRows.length; i++) {
-            const itemId = i + 1;
-            updateCartItem(itemId);
-        }
+        // Récupère tous les éléments du panier et les met à jour
+        const quantityInputs = document.querySelectorAll('.quantity-input');
 
-        // Show alert
-        alert('Cart updated successfully!');
-    }
-
-    function updateCartTotals() {
-        // Calculate subtotal from all items
-        let subtotal = 0;
-        const subtotalElements = document.querySelectorAll('[id^="subtotal-"]');
-
-        subtotalElements.forEach(element => {
-            const value = parseFloat(element.textContent.replace('€', ''));
-            subtotal += value;
+        quantityInputs.forEach(input => {
+            const productId = input.id.split('-')[1];
+            updateCartItem(productId);
         });
 
-        // Update cart subtotal
-        document.getElementById('cart-subtotal').textContent = `€${subtotal.toFixed(2)}`;
-
-        // Get shipping cost
-        const shippingCost = parseFloat(document.getElementById('shipping-cost').textContent.replace('€', ''));
-
-        // Calculate and update total
-        const total = subtotal + shippingCost;
-        document.getElementById('cart-total').textContent = `€${total.toFixed(2)}`;
+        alert('Panier mis à jour !');
     }
 
     function updateShipping(type) {
@@ -682,12 +687,23 @@
         }
 
         document.getElementById('shipping-cost').textContent = `€${shippingCost.toFixed(2)}`;
-        updateCartTotals();
+
+        // Recalculer le total
+        const subtotalElement = document.getElementById('cart-subtotal');
+        const subtotal = parseFloat(subtotalElement.textContent.replace('€', ''));
+        const total = subtotal + shippingCost;
+
+        document.getElementById('cart-total').textContent = `€${total.toFixed(2)}`;
+    }
+
+    function proceedToCheckout() {
+        // Rediriger vers la page de checkout
+        window.location.href = '${pageContext.request.contextPath}/checkout';
     }
 
     // Initialize on page load
     document.addEventListener('DOMContentLoaded', function() {
-        updateCartTotals();
+        // Rien à faire ici pour le moment
     });
 </script>
 

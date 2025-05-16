@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class OrderLineService {
@@ -42,14 +41,17 @@ public class OrderLineService {
         repository.deleteById(id);
     }
 
-    public OrderLine addOrderLine(Order order, Product product, int quantity) {
-        if (product.getStock() < quantity) {
-            throw new StockException(product, quantity);
-        }
+    // Nouvelle méthode pour supprimer par ID composite
+    public void deleteByOrderAndProduct(Long orderId, Long productId) {
+        OrderLineId id = new OrderLineId();
+        id.setOrderId(orderId);
+        id.setProductId(productId);
+        delete(id);
+    }
 
-        // décrémenter le stock
-        product.setStock(product.getStock() - quantity);
-        productService.save(product); // maj stock
+    public OrderLine addOrderLine(Order order, Product product, int quantity) {
+        // Pour les opérations de panier, on ne décrémente pas le stock
+        // Le stock sera décrémenté seulement lors de la commande finale
 
         OrderLine line = new OrderLine();
         OrderLineId id = new OrderLineId();
@@ -63,5 +65,19 @@ public class OrderLineService {
 
         return repository.save(line);
     }
-}
 
+    // Méthode pour finaliser une commande (décrémenter le stock)
+    public void finalizeOrder(Order order) {
+        if (order.getOrderLines() != null) {
+            for (OrderLine line : order.getOrderLines()) {
+                Product product = line.getProduct();
+                if (product.getStock() < line.getQuantity()) {
+                    throw new StockException(product, line.getQuantity());
+                }
+                // Décrémenter le stock
+                product.setStock(product.getStock() - line.getQuantity());
+                productService.save(product);
+            }
+        }
+    }
+}
